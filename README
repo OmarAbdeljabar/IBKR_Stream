@@ -1,76 +1,75 @@
-# IBKR Live Data Streaming Latency Monitor
+IBKR Live Data Streaming Latency Monitor
+A Python application comprising two scripts—livedata.py and latencyapp.py—that together connect to the Interactive Brokers API to:
 
-A Python application comprising two scripts—`livedata.py` and `latencyapp.py`—that together connect to the Interactive Brokers API to:
+Stream 5-second realtime bars for selected tickers and record raw data to CSV files (livedata.py).
 
-* **Stream** 5-second realtime bars for selected tickers and record raw data to CSV files (`livedata.py`).
-* **Display** an interactive latency plot with moving average, statistics, and hover details (`latencyapp.py`).
+Display an interactive latency plot with moving average, statistics, and hover details (latencyapp.py).
 
-## Prerequisites
+Prerequisites
+Python 3.7+
 
-* Python 3.7+
-* Interactive Brokers TWS or IB Gateway with API enabled
-* pip packages:
+Interactive Brokers TWS or IB Gateway with API enabled
 
-  * ibapi
-  * PyQt5
-  * pyqtgraph
-  * numpy
+pip packages:
 
-## Installation
+ibapi
 
-1. Clone this repository:
+PyQt5
 
-   ```bash
-   git clone https://github.com/yourusername/ibkr-latency-monitor.git
-   cd ibkr-latency-monitor
-   ```
-2. Install dependencies:
+pyqtgraph
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+numpy
 
-## Configuration
+Installation
+Clone this repository:
 
+git clone https://github.com/yourusername/ibkr-latency-monitor.git
+cd ibkr-latency-monitor
+
+Install dependencies:
+
+pip install -r requirements.txt
+
+Configuration
 Environment variables (defaults shown):
 
-* `IB_HOST` (default: `127.0.0.1`)
-* `IB_PORT` (default: `7496`)
-* `IB_CLIENT_ID` (default: `1`)
-* `OUTPUT_DIR` (default: `./candles`)
+IB_HOST (default: 127.0.0.1)
 
-To monitor different symbols, edit the `TICKERS` list in **`livedata.py`**.
+IB_PORT (default: 7496)
 
-## Usage
+IB_CLIENT_ID (default: 1)
 
-1. **Start data streaming**:
+OUTPUT_DIR (default: ./candles)
 
-   ```bash
-   python livedata.py
-   ```
+To monitor different symbols, edit the TICKERS list in livedata.py.
 
-   * Streams realtime bars and appends CSV files (`<SYMBOL>.csv`) in the output directory.
+Usage
+Start data streaming:
 
-2. **Launch latency monitor**:
+python livedata.py
 
-   ```bash
-   python latencyapp.py
-   ```
+Streams realtime bars and appends CSV files (<SYMBOL>.csv) in the output directory.
 
-   * Opens a PyQt5 window showing live latency (ms) versus time.
-   * The plot includes a 30‑second moving average, min/max/avg stats, and hover details.
-   * Press **Ctrl+C** or close the window to gracefully shut down and disconnect.
+Launch latency monitor:
 
-## File Structure
+python latencyapp.py
 
-```
-├── livedata.py       # Streams realtime bars to CSV
-├── latencyapp.py     # GUI for live latency plotting
-├── requirements.txt  # pip dependencies
-└── candles/          # CSV output directory
-    └── *.csv         # Raw realtime bar data
-```
+Opens a PyQt5 window showing live latency (ms) versus time.
 
-## License
+The plot includes a 30-second moving average, min/max/avg stats, and hover details.
 
+Press Ctrl+C or close the window to gracefully shut down and disconnect.
+
+File Structure
+livedata.py (Streams realtime bars to CSV)
+
+latencyapp.py (GUI for live latency plotting)
+
+requirements.txt (pip dependencies)
+
+candles/ (CSV output directory)
+
+*.csv (Raw realtime bar data)
+
+License
 Released under the MIT License. Feel free to use and modify as needed.
