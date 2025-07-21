@@ -1,0 +1,76 @@
+# IBKR Live Data Streaming Latency Monitor
+
+A Python application comprising two scripts—`livedata.py` and `latencyapp.py`—that together connect to the Interactive Brokers API to:
+
+* **Stream** 5-second realtime bars for selected tickers and record raw data to CSV files (`livedata.py`).
+* **Display** an interactive latency plot with moving average, statistics, and hover details (`latencyapp.py`).
+
+## Prerequisites
+
+* Python 3.7+
+* Interactive Brokers TWS or IB Gateway with API enabled
+* pip packages:
+
+  * ibapi
+  * PyQt5
+  * pyqtgraph
+  * numpy
+
+## Installation
+
+1. Clone this repository:
+
+   ```bash
+   git clone https://github.com/yourusername/ibkr-latency-monitor.git
+   cd ibkr-latency-monitor
+   ```
+2. Install dependencies:
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+## Configuration
+
+Environment variables (defaults shown):
+
+* `IB_HOST` (default: `127.0.0.1`)
+* `IB_PORT` (default: `7496`)
+* `IB_CLIENT_ID` (default: `1`)
+* `OUTPUT_DIR` (default: `./candles`)
+
+To monitor different symbols, edit the `TICKERS` list in **`livedata.py`**.
+
+## Usage
+
+1. **Start data streaming**:
+
+   ```bash
+   python livedata.py
+   ```
+
+   * Streams realtime bars and appends CSV files (`<SYMBOL>.csv`) in the output directory.
+
+2. **Launch latency monitor**:
+
+   ```bash
+   python latencyapp.py
+   ```
+
+   * Opens a PyQt5 window showing live latency (ms) versus time.
+   * The plot includes a 30‑second moving average, min/max/avg stats, and hover details.
+   * Press **Ctrl+C** or close the window to gracefully shut down and disconnect.
+
+## File Structure
+
+```
+├── livedata.py       # Streams realtime bars to CSV
+├── latencyapp.py     # GUI for live latency plotting
+├── requirements.txt  # pip dependencies
+└── candles/          # CSV output directory
+    └── *.csv         # Raw realtime bar data
+```
+
+## License
+
+Released under the MIT License. Feel free to use and modify as needed.
