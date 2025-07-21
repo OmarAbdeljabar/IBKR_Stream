@@ -24,7 +24,7 @@ This project consists of two Python scripts:
 1. Clone the repository:
    ```bash
    git clone https://github.com/OmarAbdeljabar/IBKR_Stream.git
-   cd ibkr-latency-monitor
+   cd ibkr_stream
    ```
 
 2. Install dependencies:
