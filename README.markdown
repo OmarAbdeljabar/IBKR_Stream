@@ -1,4 +1,4 @@
-# IBKR Live Data Streaming Latency Monitor
+# IBKR Live Streaming 5 Second Candles with Latency Monitor
 
 A Python application for streaming real-time market data from Interactive Brokers (IBKR) and monitoring latency with an interactive graphical interface.
 
