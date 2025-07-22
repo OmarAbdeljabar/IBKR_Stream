@@ -24,7 +24,7 @@ class LatencyPlotter(QtWidgets.QMainWindow):
         for line in self.f:
             ts_bar, *_, ts_recv = line.strip().split(',')
             t_bar = float(ts_bar)
-            t_recv = float(ts_recv)
+            t_recv = float(ts_recv) / 1e9  # <-- FIXED
             self.x.append(t_recv)
             self.y.append((t_recv - (t_bar + 5.0)) * 1000.0)
         for i in range(len(self.x)):
@@ -110,7 +110,7 @@ class LatencyPlotter(QtWidgets.QMainWindow):
                 break
             ts_bar, *_, ts_recv = line.strip().split(',')
             t_bar = float(ts_bar)
-            t_recv = float(ts_recv)
+            t_recv = float(ts_recv) / 1e9  # <-- FIXED
             lat = (t_recv - (t_bar + 5.0)) * 1000.0
             self.x.append(t_recv)
             self.y.append(lat)
