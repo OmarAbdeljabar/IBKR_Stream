@@ -37,7 +37,7 @@ This project consists of two Python scripts:
 Set the following environment variables (defaults shown):
 
 - `IB_HOST` (default: `127.0.0.1`)
-- `IB_PORT` (default: `7496` for TWS, `7497` for IB Gateway)
+- `IB_PORT` (default: `7496` for TWS, `4001` for IB Gateway)
 - `IB_CLIENT_ID` (default: `1`)
 - `OUTPUT_DIR` (default: `./candles`)
 
