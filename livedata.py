@@ -2,20 +2,16 @@ from ibapi.client import EClient
 from ibapi.wrapper import EWrapper
 from ibapi.contract import Contract
 import threading
-import time
 import csv
 import os
 import signal
 import sys
 from datetime import datetime, timezone
-from PyQt5 import QtWidgets, QtCore, QtGui
-import pyqtgraph as pg
-from pyqtgraph import DateAxisItem
-import numpy as np
+from time import time_ns
 
 # Configuration
 DEFAULT_HOST = '127.0.0.1'
-DEFAULT_PORT = 7496
+DEFAULT_PORT = 4001
 DEFAULT_CLIENT_ID = 1
 DEFAULT_OUTPUT_DIR = r'./candles'
 
@@ -43,7 +39,7 @@ class IBKRWrapper(EWrapper):
     def realtimeBar(self, reqId, time, open, high, low, close, volume, wap, count):
         super().realtimeBar(reqId, time, open, high, low, close, volume, wap, count)
         bar_ts = time
-        ts_recv = datetime.now(timezone.utc).timestamp()
+        ts_recv = time_ns()
         if reqId in self.data_writers:
             w = self.data_writers[reqId]
             try:
@@ -130,109 +126,7 @@ def shutdown(sig, frame):
         api_thread.join(timeout=5)
     sys.exit(0)
 
-class LatencyPlotter(QtWidgets.QMainWindow):
-    def __init__(self):
-        super().__init__()
-        pg.setConfigOption('background', '#121212')
-        pg.setConfigOption('foreground', '#e0e0e0')
-        pg.setConfigOption('antialias', True)
-        self.x = []
-        self.y = []
-        self.ma_x = []
-        self.ma_y = []
-        self.min_latency = self.max_latency = self.avg_latency = 0
-        self.f = open(os.path.join(OUTPUT_DIR, "SPY.csv"), 'r')
-        self.f.readline()
-        self.initUI()
-        self.timer = QtCore.QTimer(self)
-        self.timer.timeout.connect(self.update)
-        self.timer.start(1000)
-
-    def initUI(self):
-        self.setWindowTitle("Interactive Brokers Live Data Streaming Latency")
-        axis = DateAxisItem(orientation='bottom')
-        self.plot = pg.PlotWidget(axisItems={'bottom': axis})
-        self.plot.showGrid(x=True, y=True, alpha=0.2)
-        self.plot.setLabel('left', 'Latency', units='ms')
-        self.plot.setLabel('bottom', 'Time')
-        self.plot.setYRange(-10, 100)
-        self.threshold_line = pg.InfiniteLine(pos=50, angle=0, pen=pg.mkPen(width=1, style=QtCore.Qt.DashLine))
-        self.plot.addItem(self.threshold_line)
-        self.curve = pg.PlotDataItem(pen=pg.mkPen(width=2), fillLevel=0, fillBrush=pg.mkBrush(50))
-        self.plot.addItem(self.curve)
-        self.scatter = pg.ScatterPlotItem(size=8)
-        self.plot.addItem(self.scatter)
-        self.stats_label = QtWidgets.QLabel()
-        self.stats_label.setAlignment(QtCore.Qt.AlignCenter)
-        self.updateStatsLabel(0,0,0)
-        self.status_bar = QtWidgets.QStatusBar()
-        self.setStatusBar(self.status_bar)
-        self.status_bar.showMessage("Monitoring latency...")
-        layout = QtWidgets.QVBoxLayout()
-        layout.addWidget(self.plot)
-        layout.addWidget(self.stats_label)
-        widget = QtWidgets.QWidget()
-        widget.setLayout(layout)
-        self.setCentralWidget(widget)
-        self.proxy = pg.SignalProxy(self.plot.scene().sigMouseMoved, rateLimit=60, slot=self.mouseMoved)
-        self.resize(1000, 600)
-
-    def updateStatsLabel(self, mn, mx, av):
-        self.stats_label.setText(f"Min: {mn:.2f} ms | Max: {mx:.2f} ms | Avg: {av:.2f} ms")
-
-    def mouseMoved(self, evt):
-        pos = evt[0]
-        if self.plot.sceneBoundingRect().contains(pos):
-            mp = self.plot.getPlotItem().vb.mapSceneToView(pos)
-            x = mp.x()
-            if self.ma_x:
-                idx = np.abs(np.array(self.ma_x) - x).argmin()
-                if idx < len(self.ma_x):
-                    xv, yv = self.ma_x[idx], self.ma_y[idx]
-                    self.scatter.setData([xv], [yv])
-                    tstr = datetime.fromtimestamp(xv).strftime('%Y-%m-%d %H:%M:%S')
-                    self.status_bar.showMessage(f"Time: {tstr} | Latency: {yv:.2f} ms")
-                    return
-        self.scatter.setData([], [])
-        self.status_bar.showMessage("Monitoring latency...")
-
-    def update(self):
-        old = len(self.x)
-        while True:
-            pos = self.f.tell()
-            line = self.f.readline()
-            if not line:
-                self.f.seek(pos)
-                break
-            *_, ts_recv = line.strip().split(',')
-            tbar = float(line.split(',')[0])
-            trec = float(ts_recv)
-            self.x.append(trec)
-            self.y.append((trec - (tbar + 5.0)) * 1000.0)
-        for i in range(old, len(self.x)):
-            t = self.x[i]
-            wstart = t - 30
-            vals = [self.y[j] for j in range(len(self.x)) if self.x[j] >= wstart]
-            if vals:
-                self.ma_x.append(t)
-                self.ma_y.append(sum(vals) / len(vals))
-        if self.ma_x:
-            self.curve.setData(self.ma_x, self.ma_y)
-            if self.ma_y:
-                self.min_latency = min(self.ma_y)
-                self.max_latency = max(self.ma_y)
-                self.avg_latency = sum(self.ma_y) / len(self.ma_y)
-                self.updateStatsLabel(self.min_latency, self.max_latency, self.avg_latency)
-                max_vis = max(self.ma_y[-100:]) if len(self.ma_y)>100 else self.max_latency
-                if max_vis > self.plot.getViewBox().viewRange()[1][1] * 0.8:
-                    self.plot.setYRange(-10, max_vis * 1.2)
-            if len(self.ma_x) > 10000:
-                self.x = self.x[-10000:]
-                self.y = self.y[-10000:]
-                self.ma_x = self.ma_x[-10000:]
-                self.ma_y = self.ma_y[-10000:]
-
-def main():
+if __name__ == "__main__":
     signal.signal(signal.SIGINT, shutdown)
     signal.signal(signal.SIGTERM, shutdown)
     if not connect_to_ib():
@@ -240,10 +134,3 @@ def main():
     if not setup_output_directory():
         sys.exit(1)
     setup_streaming()
-    app_qt = QtWidgets.QApplication(sys.argv)
-    window = LatencyPlotter()
-    window.show()
-    sys.exit(app_qt.exec_())
-
-if __name__ == "__main__":
-    main()
